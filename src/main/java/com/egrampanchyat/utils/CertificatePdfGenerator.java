@@ -3,6 +3,8 @@ package com.egrampanchyat.utils;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 import com.egrampanchyat.entity.CertificateApplication;
@@ -22,6 +24,9 @@ import com.lowagie.text.pdf.PdfWriter;
 
 public class CertificatePdfGenerator {
 
+    private static final DateTimeFormatter DATE_FORMAT =
+            DateTimeFormatter.ofPattern("dd-MM-yyyy");
+
     public static ByteArrayInputStream generate(CertificateApplication app) {
 
         Document document = new Document(PageSize.A4, 40, 40, 40, 40);
@@ -31,21 +36,21 @@ public class CertificatePdfGenerator {
             PdfWriter writer = PdfWriter.getInstance(document, out);
             document.open();
 
-            // ================= BORDER =================
+            /* ================= BORDER ================= */
             PdfContentByte cb = writer.getDirectContent();
             Rectangle border = new Rectangle(30, 30, 565, 810);
             border.setBorder(Rectangle.BOX);
             border.setBorderWidth(2.5f);
             cb.rectangle(border);
 
-            // ================= FONTS =================
+            /* ================= FONTS ================= */
             Font headerFont = FontFactory.getFont(FontFactory.TIMES_BOLD, 18);
             Font subHeaderFont = FontFactory.getFont(FontFactory.TIMES_BOLD, 12);
             Font labelFont = FontFactory.getFont(FontFactory.TIMES_BOLD, 11);
             Font valueFont = FontFactory.getFont(FontFactory.TIMES_ROMAN, 11);
             Font footerFont = FontFactory.getFont(FontFactory.TIMES_ROMAN, 10);
 
-            // ================= HEADER =================
+            /* ================= HEADER ================= */
             Paragraph header = new Paragraph("GRAM PANCHAYAT CERTIFICATE", headerFont);
             header.setAlignment(Element.ALIGN_CENTER);
             document.add(header);
@@ -58,24 +63,21 @@ public class CertificatePdfGenerator {
             subHeader.setSpacingAfter(15);
             document.add(subHeader);
 
-            // ================= REF NO (LEFT) =================
+            /* ================= REF NO ================= */
             Paragraph ref = new Paragraph(
-                    "Certificate Reference No : " + app.getCertificateRefNo(),
+                    "Certificate Reference No : " + safe(app.getCertificateRefNo()),
                     labelFont
             );
-            ref.setAlignment(Element.ALIGN_LEFT);
             ref.setSpacingAfter(10);
             document.add(ref);
 
-            // ================= PHOTO BOX (TOP RIGHT, SEPARATE) =================
+            /* ================= PHOTO ================= */
             PdfPTable photoTable = new PdfPTable(1);
             photoTable.setWidthPercentage(30);
             photoTable.setHorizontalAlignment(Element.ALIGN_RIGHT);
 
             PdfPCell photoCell = new PdfPCell();
-            photoCell.setFixedHeight(95);     // box height kam
-           // photo.scaleToFit(70, 85);         // photo size kam
-
+            photoCell.setFixedHeight(95);
             photoCell.setBorder(Rectangle.BOX);
             photoCell.setHorizontalAlignment(Element.ALIGN_CENTER);
             photoCell.setVerticalAlignment(Element.ALIGN_MIDDLE);
@@ -95,36 +97,37 @@ public class CertificatePdfGenerator {
 
             photoTable.addCell(photoCell);
             document.add(photoTable);
-
             document.add(Chunk.NEWLINE);
 
-            // ================= DETAILS TABLE (FULL WIDTH, NICHE) =================
+            /* ================= DETAILS ================= */
             PdfPTable detailsTable = new PdfPTable(2);
             detailsTable.setWidthPercentage(100);
             detailsTable.setWidths(new int[]{40, 60});
 
-            addRow(detailsTable, "Applicant Name", app.getApplicantName(), labelFont, valueFont);
+            addRow(detailsTable, "Applicant Name",
+                    safe(app.getApplicantName()), labelFont, valueFont);
+
             addRow(detailsTable, "Date of Birth",
-                    app.getDateOfBirth().format(DateTimeFormatter.ofPattern("dd-MM-yyyy")),
-                    labelFont, valueFont);
+                    formatDate(app.getDateOfBirth()), labelFont, valueFont);
+
             addRow(detailsTable, "Certificate Type",
-                    app.getCertificateType().toString(),
+                    safe(app.getCertificateType() != null
+                            ? app.getCertificateType().toString()
+                            : null),
                     labelFont, valueFont);
+
             addRow(detailsTable, "Issue Date",
-                    app.getApprovedAt().toLocalDate()
-                            .format(DateTimeFormatter.ofPattern("dd-MM-yyyy")),
-                    labelFont, valueFont);
+                    formatDateTime(app.getApprovedAt()), labelFont, valueFont);
+
             addRow(detailsTable, "Valid Till",
-                    app.getExpiryDate()
-                            .format(DateTimeFormatter.ofPattern("dd-MM-yyyy")),
-                    labelFont, valueFont);
+                    formatDate(app.getExpiryDate()), labelFont, valueFont);
 
             document.add(detailsTable);
 
             document.add(Chunk.NEWLINE);
             document.add(Chunk.NEWLINE);
 
-            // ================= CERTIFICATION TEXT =================
+            /* ================= CERTIFICATION TEXT ================= */
             document.add(new Paragraph(
                     "This is to certify that the above information has been verified "
                             + "from official records and is found to be correct. "
@@ -136,7 +139,7 @@ public class CertificatePdfGenerator {
             document.add(Chunk.NEWLINE);
             document.add(Chunk.NEWLINE);
 
-            // ================= SIGNATURE =================
+            /* ================= SIGNATURE ================= */
             PdfPTable signTable = new PdfPTable(2);
             signTable.setWidthPercentage(100);
 
@@ -165,7 +168,7 @@ public class CertificatePdfGenerator {
 
             document.add(Chunk.NEWLINE);
 
-            // ================= FOOTER =================
+            /* ================= FOOTER ================= */
             Paragraph footer = new Paragraph(
                     "This is a computer generated certificate.",
                     footerFont
@@ -182,7 +185,22 @@ public class CertificatePdfGenerator {
         return new ByteArrayInputStream(out.toByteArray());
     }
 
-    // ================= HELPER =================
+    /* ================= SAFE HELPERS ================= */
+
+    private static String safe(String value) {
+        return value != null ? value : "N/A";
+    }
+
+    private static String formatDate(LocalDate date) {
+        return date != null ? date.format(DATE_FORMAT) : "N/A";
+    }
+
+    private static String formatDateTime(LocalDateTime dateTime) {
+        return dateTime != null
+                ? dateTime.toLocalDate().format(DATE_FORMAT)
+                : "N/A";
+    }
+
     private static void addRow(
             PdfPTable table,
             String label,
