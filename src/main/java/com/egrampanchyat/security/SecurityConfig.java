@@ -26,7 +26,7 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
         http
-            .cors() // 🔥 MUST for React
+            .cors()
             .and()
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
@@ -53,12 +53,15 @@ public class SecurityConfig {
         return http.build();
     }
 
-    // 🔥 THIS IS THE REAL CORS FIX
+    // 🔥 CORS CONFIG (ONLY REQUIRED CHANGE HERE)
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
 
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("http://localhost:3000"));
+        config.setAllowedOrigins(List.of(
+                "http://localhost:3000",
+                "https://e-gram-panchayat.netlify.app"
+        ));
         config.setAllowedMethods(List.of(
                 "GET", "POST", "PUT", "DELETE", "OPTIONS"
         ));
