@@ -29,14 +29,17 @@ public class SecurityConfig {
             .cors()
             .and()
             .csrf(csrf -> csrf.disable())
+            // 🔥 REQUIRED for H2 console (iframe issue)
+            .headers(headers -> headers.frameOptions(frame -> frame.disable()))
             .authorizeHttpRequests(auth -> auth
 
                 // ✅ allow CORS preflight
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                // ✅ public auth & swagger
+                // ✅ public auth, swagger & H2 console
                 .requestMatchers(
                     "/api/auth/**",
+                    "/h2-console/**",      // 🔥 ADD THIS
                     "/swagger-ui/**",
                     "/v3/api-docs/**",
                     "/swagger-ui.html"
@@ -53,12 +56,12 @@ public class SecurityConfig {
         return http.build();
     }
 
-    // 🔥 CORS CONFIG (ONLY REQUIRED CHANGE HERE)
+    // 🔥 CORS CONFIG (small but important improvement)
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
 
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of(
+        config.setAllowedOriginPatterns(List.of(
                 "http://localhost:3000",
                 "https://e-gram-panchayat.netlify.app"
         ));
