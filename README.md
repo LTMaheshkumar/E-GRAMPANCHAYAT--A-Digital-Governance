@@ -10,13 +10,19 @@ This system enables citizens to access government services online and allows adm
 🔗 Frontend (Netlify):  
 https://e-gram-panchayat.netlify.app/
 
-🔗 Backend (Railway):  
-https://e-grampanchayat-a-digital-governance-production.up.railway.app/
+🔗 Backend (Railway):
+
+For Render: https://e-grampanchayat-a-digital-governance.onrender.com
+For Railway: https://e-grampanchayat-a-digital-governance-production.up.railway.app/
 
 🔗 Swagger API Documentation:  
+https://e-grampanchayat-a-digital-governance.onrender.com/swagger-ui/index.html
 https://e-grampanchayat-a-digital-governance-production.up.railway.app/swagger-ui/index.html
 
 🔗 H2 database console:  
+JDBC URL: jdbc:h2:file:./egrampanchayat
+For Render: https://e-grampanchayat-a-digital-governance.onrender.com/h2-console
+
 https://e-grampanchayat-a-digital-governance-production.up.railway.app/h2-console/login.jsp?jsessionid=a877685dd4071241f73ffe8c98e434a6
 
 
